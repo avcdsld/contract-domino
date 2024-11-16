@@ -1,3 +1,9 @@
+/*---------------------------------------------
+|  A chain of ideals, fleeting yet infinite.  |
+|  To topple them is to destroy,              |
+|  yet in destruction lies the rebirth.       |
+---------------------------------------------*/
+
 // SPDX-License-Identifier: WTFPL
 pragma solidity ^0.8.0;
 
@@ -21,6 +27,8 @@ import "./16_Peacebuilding.sol";
 import "./17_InternationalCooperation.sol";
 
 contract DominoFactory {
+
+    // You can topple the dominoes over and over again.
     function place() public returns (address) {
         Domino[17] memory dominos;
         dominos[0] = new SocialWelfare();
@@ -46,6 +54,7 @@ contract DominoFactory {
         return address(dominos[0]);
     }
 
+    // Destroy everything. Ref. EIP-6780.
     function placeAndTopple() public {
         address domino01 = place();
         Domino(payable(domino01)).topple();

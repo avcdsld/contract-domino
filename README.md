@@ -1,66 +1,13 @@
-## Foundry
+## Contract Domino
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+This is a poem of code that sets off a chain of destruction.
 
-Foundry consists of:
+- DominoFactory contract: https://etherscan.io/address/0xa3058d4f3428bab0d1650a6f506e745c3658fd3b#code
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+- A transaction that places dominoes: https://etherscan.io/tx/0x3e061d5d9df6193fe57e8ebbdb96108692e8650edb4975a53cba9a2baf1b69ca
 
-## Documentation
+- A transaction that topples dominoes: https://etherscan.io/tx/0xd7238d0b1b2a2b9a70ab412f03a84fcb2cf303f8262ef267e6fc960a8c5a6b0f
 
-https://book.getfoundry.sh/
+- You can topple the dominoes from here: https://etherscan.io/address/0xd8a518854513dc3681aa0287a2e674dd5e03b5f7#writeContract
 
-## Usage
-
-### Build
-
-```shell
-$ forge build
-```
-
-### Test
-
-```shell
-$ forge test
-```
-
-### Format
-
-```shell
-$ forge fmt
-```
-
-### Gas Snapshots
-
-```shell
-$ forge snapshot
-```
-
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+Licensed under WTFPL

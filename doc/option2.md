@@ -1,5 +1,6 @@
 ```mermaid
 sequenceDiagram
+    %%{init:{'theme':'neutral'}}%%
     actor Agent
     participant DominoFactory as Domino Factory
 

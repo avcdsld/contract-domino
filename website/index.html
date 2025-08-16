@@ -1,0 +1,2136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contract Domino</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #ffffff;
+            color: #000000;
+            font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 80px 40px;
+        }
+        
+        header {
+            margin: 80px 0px 0px 0;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 16px;
+            font-weight: 400;
+            letter-spacing: 0.2em;
+            margin-bottom: 20px;
+        }
+        
+        .contract-address {
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+            font-size: 11px;
+            color: #999;
+            letter-spacing: 0.05em;
+        }
+        
+        .domino-visualization {
+            position: relative;
+            height: 400px;
+            margin: 0;
+            background: linear-gradient(to bottom, #ffffff 0%, #fafafa 100%);
+            overflow-x: auto;
+            overflow-y: hidden;
+        }
+        
+        .domino {
+            position: absolute;
+            width: 2px;
+            height: 60px;
+            background: #000;
+            top: 0;
+            left: 0;
+            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: bottom center;
+            opacity: 0;
+        }
+        
+        .domino.placed {
+            opacity: 1;
+        }
+        
+        .domino.falling {
+            transform: rotate(85deg);
+            opacity: 0.3;
+        }
+        
+        .domino.destroyed-true {
+            /* 倒れたまま残る - 消えない */
+            opacity: 0.7;
+            transition: opacity 0.5s ease-out;
+        }
+        
+        .domino.destroyed-apparent {
+            opacity: 0.1;
+            background: #e0e0e0;
+        }
+        
+        .domino.recovering {
+            transform: translateY(-50%) rotate(0deg);
+            opacity: 1;
+            background: #000;
+            transition: all 1.0s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .domino.mock-falling {
+            opacity: 0.8;
+        }
+        
+        .domino.mock-falling::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #666;
+            opacity: 0;
+            transform: rotate(0deg);
+            transform-origin: bottom center;
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+        }
+        
+        .domino.mock-falling.active::after {
+            opacity: 0.4;
+            transform: rotate(85deg);
+        }
+        
+        .domino.mock-falling.fading::after {
+            opacity: 0;
+            transform: rotate(85deg);
+            transition: opacity 0.8s ease-out;
+        }
+        
+        .domino-label {
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 9px;
+            color: #999;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .domino:hover .domino-label {
+            opacity: 1;
+        }
+        
+        .execution-modes {
+            display: flex;
+            gap: 60px;
+            margin: 40px 0 100px 0;
+            padding: 60px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .mode {
+            flex: 1;
+            position: relative;
+        }
+        
+        .mode h3 {
+            font-size: 13px;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+        
+        .mode p {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.8;
+            margin-bottom: 30px;
+        }
+        
+        .mode-button {
+            display: inline-block;
+            padding: 12px 40px;
+            background: #fff;
+            border: 1px solid #000;
+            color: #000;
+            text-decoration: none;
+            font-size: 12px;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+        
+        .mode-button:hover {
+            background: #000;
+            color: #fff;
+        }
+        
+        .mode-button.true-destruction {
+            border-color: #000;
+        }
+        
+        .mode-button.apparent-destruction {
+            border-color: #999;
+            color: #999;
+        }
+        
+        .mode-button.apparent-destruction:hover {
+            background: #999;
+            color: #fff;
+        }
+        
+        .code-section {
+            margin: 100px 0;
+        }
+        
+        .code-container {
+            background: white;
+            border: 1px solid #f0f0f0;
+            padding: 0;
+            overflow: hidden;
+            min-height: 700px;
+            position: relative;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .code-container.destructing {
+            animation: dissolve 2s forwards;
+        }
+        
+        @keyframes dissolve {
+            0% { opacity: 1; filter: none; }
+            50% { opacity: 0.5; filter: blur(2px); transform: scale(0.99); }
+            100% { opacity: 0; filter: blur(10px); transform: scale(0.95); }
+        }
+        
+        .code-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            background: #fff;
+            font-size: 11px;
+            color: #999;
+            letter-spacing: 0.05em;
+        }
+        
+        pre {
+            margin: 0;
+            padding: 50px 60px;
+            overflow-x: auto;
+            line-height: 1.6;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+            font-size: 13px;
+            white-space: pre;
+        }
+        
+        .comment {
+            color: #666;
+        }
+        
+        .keyword {
+            color: #000;
+            font-weight: 500;
+        }
+        
+        .keyword.destructive {
+            color: #ff0000;
+            font-weight: 600;
+        }
+        
+        .function {
+            color: #000;
+        }
+        
+        .string {
+            color: #333;
+        }
+        
+        .declarations-section {
+            margin: 0;
+            padding: 0px 0;
+            background: #fafafa;
+            border-top: 1px solid #f0f0f0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .declarations-section h2 {
+            text-align: center;
+            font-size: 14px;
+            font-weight: 400;
+            letter-spacing: 0.2em;
+            margin-bottom: 10px;
+        }
+        
+        .section-subtitle {
+            text-align: center;
+            font-size: 13px;
+            color: #999;
+            margin-bottom: 60px;
+            font-style: italic;
+        }
+        
+        .source-carousel {
+            max-width: 1000px;
+            margin: 0 auto;
+            position: relative;
+        }
+        
+        .source-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 15px 20px;
+            background: white;
+            border: 1px solid #f0f0f0;
+        }
+        
+        .source-selector {
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+            font-size: 13px;
+            padding: 8px 12px;
+            border: 1px solid #f0f0f0;
+            background: white;
+            cursor: pointer;
+            min-width: 250px;
+        }
+        
+        .source-nav-buttons {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .source-nav-buttons button {
+            width: 36px;
+            height: 36px;
+            background: white;
+            border: 1px solid #f0f0f0;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .source-nav-buttons button:hover {
+            background: #000;
+            color: white;
+            border-color: #000;
+        }
+        
+
+        
+        .source-display {
+            background: white;
+            border: 1px solid #f0f0f0;
+            padding: 0;
+            overflow: hidden;
+            min-height: 700px;
+            position: relative;
+        }
+        
+        .source-display-inner {
+            position: relative;
+            width: 100%;
+            height: 700px;
+            overflow: hidden;
+            perspective: 1000px;
+        }
+        
+        .source-code {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            padding: 50px 60px;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            overflow: hidden;
+            white-space: pre;
+            margin: 0;
+            opacity: 0;
+            transform: translateX(100%) rotateY(0deg);
+            transform-style: preserve-3d;
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        
+        .source-code::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .source-code.active {
+            opacity: 1;
+            transform: translateX(0) rotateY(0deg);
+        }
+        
+        .source-code.falling {
+            transform: translateX(0) rotate(2deg);
+            opacity: 0.7;
+        }
+        
+        .source-code.fallen {
+            transform: translateX(-100%) rotate(-2deg);
+            opacity: 0;
+        }
+        
+        @keyframes dominoFall {
+            0% {
+                transform: translateX(0) rotateY(0deg);
+                opacity: 1;
+            }
+            25% {
+                transform: translateX(-5%) rotateY(10deg);
+                opacity: 0.95;
+            }
+            50% {
+                transform: translateX(-20%) rotateY(45deg);
+                opacity: 0.7;
+            }
+            75% {
+                transform: translateX(-50%) rotateY(70deg);
+                opacity: 0.3;
+            }
+            100% {
+                transform: translateX(-100%) rotateY(90deg);
+                opacity: 0;
+            }
+        }
+        
+        @keyframes dominoRise {
+            0% {
+                transform: translateX(100%) rotateY(-90deg);
+                opacity: 0;
+            }
+            25% {
+                transform: translateX(50%) rotateY(-70deg);
+                opacity: 0.3;
+            }
+            50% {
+                transform: translateX(20%) rotateY(-45deg);
+                opacity: 0.7;
+            }
+            75% {
+                transform: translateX(5%) rotateY(-10deg);
+                opacity: 0.95;
+            }
+            100% {
+                transform: translateX(0) rotateY(0deg);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes dominoFallRight {
+            0% {
+                transform: rotateX(0deg);
+                transform-origin: bottom center;
+                opacity: 1;
+            }
+            5% {
+                transform: rotateX(-1deg);
+                transform-origin: bottom center;
+                opacity: 0.99;
+            }
+            10% {
+                transform: rotateX(-3deg);
+                transform-origin: bottom center;
+                opacity: 0.98;
+            }
+            15% {
+                transform: rotateX(-6deg);
+                transform-origin: bottom center;
+                opacity: 0.96;
+            }
+            20% {
+                transform: rotateX(-10deg);
+                transform-origin: bottom center;
+                opacity: 0.94;
+            }
+            25% {
+                transform: rotateX(-15deg);
+                transform-origin: bottom center;
+                opacity: 0.91;
+            }
+            30% {
+                transform: rotateX(-21deg);
+                transform-origin: bottom center;
+                opacity: 0.88;
+            }
+            35% {
+                transform: rotateX(-28deg);
+                transform-origin: bottom center;
+                opacity: 0.84;
+            }
+            40% {
+                transform: rotateX(-36deg);
+                transform-origin: bottom center;
+                opacity: 0.79;
+            }
+            45% {
+                transform: rotateX(-45deg);
+                transform-origin: bottom center;
+                opacity: 0.74;
+            }
+            50% {
+                transform: rotateX(-54deg);
+                transform-origin: bottom center;
+                opacity: 0.68;
+            }
+            55% {
+                transform: rotateX(-63deg);
+                transform-origin: bottom center;
+                opacity: 0.61;
+            }
+            60% {
+                transform: rotateX(-71deg);
+                transform-origin: bottom center;
+                opacity: 0.54;
+            }
+            65% {
+                transform: rotateX(-78deg);
+                transform-origin: bottom center;
+                opacity: 0.46;
+            }
+            70% {
+                transform: rotateX(-84deg);
+                transform-origin: bottom center;
+                opacity: 0.38;
+            }
+            75% {
+                transform: rotateX(-88deg);
+                transform-origin: bottom center;
+                opacity: 0.29;
+            }
+            80% {
+                transform: rotateX(-90deg);
+                transform-origin: bottom center;
+                opacity: 0.2;
+            }
+            85% {
+                transform: rotateX(-90deg);
+                transform-origin: bottom center;
+                opacity: 0.12;
+            }
+            90% {
+                transform: rotateX(-90deg);
+                transform-origin: bottom center;
+                opacity: 0.06;
+            }
+            95% {
+                transform: rotateX(-90deg) rotateY(-75deg);
+                transform-origin: bottom center;
+                opacity: 0.02;
+            }
+            100% {
+                transform: rotateX(-90deg);
+                transform-origin: bottom center;
+                opacity: 0;
+            }
+        }
+        
+        @keyframes dominoFallLeft {
+            0% {
+                transform: rotateX(0deg);
+                transform-origin: bottom center;
+                opacity: 1;
+            }
+            5% {
+                transform: rotateX(1deg);
+                transform-origin: bottom center;
+                opacity: 0.99;
+            }
+            10% {
+                transform: rotateX(3deg);
+                transform-origin: bottom center;
+                opacity: 0.98;
+            }
+            15% {
+                transform: rotateX(6deg);
+                transform-origin: bottom center;
+                opacity: 0.96;
+            }
+            20% {
+                transform: rotateX(10deg);
+                transform-origin: bottom center;
+                opacity: 0.94;
+            }
+            25% {
+                transform: rotateX(15deg);
+                transform-origin: bottom center;
+                opacity: 0.91;
+            }
+            30% {
+                transform: rotateX(21deg);
+                transform-origin: bottom center;
+                opacity: 0.88;
+            }
+            35% {
+                transform: rotateX(28deg);
+                transform-origin: bottom center;
+                opacity: 0.84;
+            }
+            40% {
+                transform: rotateX(36deg);
+                transform-origin: bottom center;
+                opacity: 0.79;
+            }
+            45% {
+                transform: rotateX(45deg);
+                transform-origin: bottom center;
+                opacity: 0.74;
+            }
+            50% {
+                transform: rotateX(54deg);
+                transform-origin: bottom center;
+                opacity: 0.68;
+            }
+            55% {
+                transform: rotateX(63deg);
+                transform-origin: bottom center;
+                opacity: 0.61;
+            }
+            60% {
+                transform: rotateX(71deg);
+                transform-origin: bottom center;
+                opacity: 0.54;
+            }
+            65% {
+                transform: rotateX(78deg);
+                transform-origin: bottom center;
+                opacity: 0.46;
+            }
+            70% {
+                transform: rotateX(84deg);
+                transform-origin: bottom center;
+                opacity: 0.38;
+            }
+            75% {
+                transform: rotateX(88deg);
+                transform-origin: bottom center;
+                opacity: 0.29;
+            }
+            80% {
+                transform: rotateX(90deg);
+                transform-origin: bottom center;
+                opacity: 0.2;
+            }
+            85% {
+                transform: rotateX(90deg);
+                transform-origin: bottom center;
+                opacity: 0.12;
+            }
+            90% {
+                transform: rotateX(90deg);
+                transform-origin: bottom center;
+                opacity: 0.06;
+            }
+            95% {
+                transform: rotateX(90deg);
+                transform-origin: bottom center;
+                opacity: 0.02;
+            }
+            100% {
+                transform: rotateX(90deg);
+                transform-origin: bottom center;
+                opacity: 0;
+            }
+        }
+        
+        @keyframes dominoRiseRight {
+            0% {
+                transform: rotateX(-90deg);
+                transform-origin: bottom center;
+                opacity: 0;
+            }
+            5% {
+                transform: rotateX(-90deg);
+                transform-origin: bottom center;
+                opacity: 0.02;
+            }
+            10% {
+                transform: rotateX(-90deg);
+                transform-origin: bottom center;
+                opacity: 0.06;
+            }
+            15% {
+                transform: rotateX(-90deg);
+                transform-origin: bottom center;
+                opacity: 0.12;
+            }
+            20% {
+                transform: rotateX(-90deg);
+                transform-origin: bottom center;
+                opacity: 0.2;
+            }
+            25% {
+                transform: rotateX(-88deg);
+                transform-origin: bottom center;
+                opacity: 0.29;
+            }
+            30% {
+                transform: rotateX(-84deg);
+                transform-origin: bottom center;
+                opacity: 0.38;
+            }
+            35% {
+                transform: rotateX(-78deg);
+                transform-origin: bottom center;
+                opacity: 0.46;
+            }
+            40% {
+                transform: rotateX(-71deg);
+                transform-origin: bottom center;
+                opacity: 0.54;
+            }
+            45% {
+                transform: rotateX(-63deg);
+                transform-origin: bottom center;
+                opacity: 0.61;
+            }
+            50% {
+                transform: rotateX(-54deg);
+                transform-origin: bottom center;
+                opacity: 0.68;
+            }
+            55% {
+                transform: rotateX(-45deg);
+                transform-origin: bottom center;
+                opacity: 0.74;
+            }
+            60% {
+                transform: rotateX(-36deg);
+                transform-origin: bottom center;
+                opacity: 0.79;
+            }
+            65% {
+                transform: rotateX(-28deg);
+                transform-origin: bottom center;
+                opacity: 0.84;
+            }
+            70% {
+                transform: rotateX(-21deg);
+                transform-origin: bottom center;
+                opacity: 0.88;
+            }
+            75% {
+                transform: rotateX(-15deg);
+                transform-origin: bottom center;
+                opacity: 0.91;
+            }
+            80% {
+                transform: rotateX(-10deg);
+                transform-origin: bottom center;
+                opacity: 0.94;
+            }
+            85% {
+                transform: rotateX(-6deg);
+                transform-origin: bottom center;
+                opacity: 0.96;
+            }
+            90% {
+                transform: rotateX(-3deg);
+                transform-origin: bottom center;
+                opacity: 0.98;
+            }
+            95% {
+                transform: rotateX(-1deg);
+                transform-origin: bottom center;
+                opacity: 0.99;
+            }
+            100% {
+                transform: rotateX(0deg);
+                transform-origin: bottom center;
+                opacity: 1;
+            }
+        }
+        
+        @keyframes dominoRiseLeft {
+            0% {
+                transform: rotateX(90deg);
+                transform-origin: bottom center;
+                opacity: 0;
+            }
+            5% {
+                transform: rotateX(90deg);
+                transform-origin: bottom center;
+                opacity: 0.02;
+            }
+            10% {
+                transform: rotateX(90deg);
+                transform-origin: bottom center;
+                opacity: 0.06;
+            }
+            15% {
+                transform: rotateX(90deg);
+                transform-origin: bottom center;
+                opacity: 0.12;
+            }
+            20% {
+                transform: rotateX(90deg);
+                transform-origin: bottom center;
+                opacity: 0.2;
+            }
+            25% {
+                transform: rotateX(88deg);
+                transform-origin: bottom center;
+                opacity: 0.29;
+            }
+            30% {
+                transform: rotateX(84deg);
+                transform-origin: bottom center;
+                opacity: 0.38;
+            }
+            35% {
+                transform: rotateX(78deg);
+                transform-origin: bottom center;
+                opacity: 0.46;
+            }
+            40% {
+                transform: rotateX(71deg);
+                transform-origin: bottom center;
+                opacity: 0.54;
+            }
+            45% {
+                transform: rotateX(63deg);
+                transform-origin: bottom center;
+                opacity: 0.61;
+            }
+            50% {
+                transform: rotateX(54deg);
+                transform-origin: bottom center;
+                opacity: 0.68;
+            }
+            55% {
+                transform: rotateX(45deg);
+                transform-origin: bottom center;
+                opacity: 0.74;
+            }
+            60% {
+                transform: rotateX(36deg);
+                transform-origin: bottom center;
+                opacity: 0.79;
+            }
+            65% {
+                transform: rotateX(28deg);
+                transform-origin: bottom center;
+                opacity: 0.84;
+            }
+            70% {
+                transform: rotateX(21deg);
+                transform-origin: bottom center;
+                opacity: 0.88;
+            }
+            75% {
+                transform: rotateX(15deg);
+                transform-origin: bottom center;
+                opacity: 0.91;
+            }
+            80% {
+                transform: rotateX(10deg);
+                transform-origin: bottom center;
+                opacity: 0.94;
+            }
+            85% {
+                transform: rotateX(6deg);
+                transform-origin: bottom center;
+                opacity: 0.96;
+            }
+            90% {
+                transform: rotateX(3deg);
+                transform-origin: bottom center;
+                opacity: 0.98;
+            }
+            95% {
+                transform: rotateX(1deg);
+                transform-origin: bottom center;
+                opacity: 0.99;
+            }
+            100% {
+                transform: rotateX(0deg);
+                transform-origin: bottom center;
+                opacity: 1;
+            }
+        }
+        
+        .source-code.domino-falling-right {
+            animation: dominoFallRight 1.5s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+        }
+        
+        .source-code.domino-falling-left {
+            animation: dominoFallLeft 1.5s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+        }
+        
+        .source-code.domino-rising-right {
+            animation: dominoRiseRight 1.5s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+        }
+        
+        .source-code.domino-rising-left {
+            animation: dominoRiseLeft 1.5s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+        }
+        
+        .source-code .comment {
+            color: #6a737d;
+        }
+        
+        .source-code .keyword {
+            color: #d73a49;
+        }
+        
+        .source-code .string {
+            color: #032f62;
+        }
+        
+        .source-code .function {
+            color: #6f42c1;
+        }
+        
+        .source-code .declaration-comment {
+            color: #6a737d;
+        }
+        
+        .source-note {
+            margin-top: 20px;
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border-left: 2px solid #000;
+        }
+        
+        .source-note p {
+            font-size: 12px;
+            color: #666;
+            margin: 0;
+            font-style: italic;
+        }
+        
+        .philosophical-note {
+            margin: 80px 0;
+            padding: 60px;
+            background: white;
+            text-align: center;
+        }
+        
+        .philosophical-note p {
+            font-size: 15px;
+            line-height: 2;
+            color: #333;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .philosophical-note p:not(:last-child) {
+            margin-bottom: 20px;
+        }
+        
+        .specifications {
+            background: #fafafa;
+            color: #333;
+            padding: 80px 60px;
+            margin: 0;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+            border-top: 1px solid #f0f0f0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .specifications h2 {
+            font-size: 14px;
+            font-weight: 400;
+            letter-spacing: 0.3em;
+            margin-bottom: 60px;
+            color: #666;
+            text-align: center;
+        }
+        
+        .spec-table {
+            display: table;
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .spec-row {
+            display: table-row;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .spec-label {
+            display: table-cell;
+            padding: 20px 40px 20px 0;
+            font-size: 13px;
+            color: #666;
+            vertical-align: top;
+            width: 200px;
+        }
+        
+        .spec-value {
+            display: table-cell;
+            padding: 20px 0;
+            font-size: 13px;
+            color: #333;
+            vertical-align: top;
+            line-height: 1.6;
+        }
+        
+        .spec-value a {
+            color: #666;
+            text-decoration: none;
+        }
+        
+        .spec-value a:hover {
+            color: #000;
+        }
+        
+        .links {
+            margin-top: 120px;
+            padding-top: 40px;
+            border-top: 1px solid #f0f0f0;
+            display: flex;
+            gap: 40px;
+        }
+        
+        .links a {
+            color: #666;
+            text-decoration: none;
+            font-size: 13px;
+            letter-spacing: 0.05em;
+            transition: color 0.3s;
+        }
+        
+        .links a:hover {
+            color: #000;
+        }
+        
+        .quantum-indicator {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            padding: 15px 25px;
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid #f0f0f0;
+            backdrop-filter: blur(10px);
+            font-size: 11px;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            transition: all 0.3s;
+        }
+        
+        .quantum-indicator.true-state {
+            border-color: #000;
+            color: #000;
+        }
+        
+        .quantum-indicator.apparent-state {
+            border-color: #999;
+            color: #999;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 40px 20px;
+            }
+            
+            .execution-modes {
+                flex-direction: column;
+                gap: 40px;
+            }
+            
+            .philosophical-note {
+                padding: 30px;
+            }
+            
+            .carousel-container {
+                padding: 0 50px;
+            }
+            
+            .declaration-card {
+                padding: 30px 20px;
+            }
+            
+            .carousel-track {
+                height: auto;
+                min-height: 650px;
+            }
+            
+            .source-display {
+                min-height: 650px;
+            }
+            
+            .source-display-inner {
+                height: 650px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>CONTRACT DOMINO</h1>
+            <div class="contract-address">0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb7</div>
+        </header>
+        
+        <div class="domino-visualization" id="dominoField"></div>
+        
+        <div class="execution-modes">
+            <div class="mode">
+                <button class="mode-button true-destruction" onclick="executeTrue()">
+                    TRUE DESTRUCTION
+                </button>
+                <h3>placeAndTopple()</h3>
+                <p>
+                    Single transaction execution.<br>
+                    Contracts are created and destroyed within the same atomic operation.<br>
+                    Due to EIP-6780, SELFDESTRUCT truly eliminates the contracts.<br>
+                    Nothing remains. True destruction.
+                </p>
+            </div>
+            
+            <div class="mode">
+                <button class="mode-button apparent-destruction" onclick="executeApparent()">
+                    MOCK DESTRUCTION
+                </button>
+                <h3>place() → topple()</h3>
+                <p>
+                    Separate transaction execution.<br>
+                    Contracts persist despite SELFDESTRUCT being called.<br>
+                    The destruction is merely apparent, a performance.<br>
+                    Everything remains. Apparent destruction.
+                </p>
+            </div>
+        </div>
+        
+        <div class="code-section">
+            <div class="container">
+            <div class="code-container" id="dominoCode">
+                <div class="code-header">Domino.sol</div>
+                <pre><span class="comment">// SPDX-License-Identifier: WTFPL</span>
+<span class="keyword">pragma solidity</span> <span class="string">^0.8.0</span>;
+
+<span class="keyword">contract</span> <span class="function">Domino</span> {
+    <span class="keyword">address public</span> next;
+
+    <span class="keyword">function</span> <span class="function">place</span>(<span class="keyword">address</span> _next) <span class="keyword">public</span> {
+        next = _next;
+    }
+
+    <span class="keyword">function</span> <span class="function">topple</span>() <span class="keyword">public</span> {
+        <span class="keyword">if</span> (next != <span class="keyword">address</span>(0)) {
+            Domino(payable(next)).topple();
+        }
+        <span class="keyword destructive">selfdestruct</span>(payable(msg.sender));
+    }
+
+    <span class="keyword">receive</span>() <span class="keyword">external payable</span> {} 
+}</pre>
+            </div>
+            
+            <div class="code-container" id="factoryCode" style="margin-top: 40px;">
+                <div class="code-header">DominoFactory.sol</div>
+                <pre><span class="comment">/*---------------------------------------------
+|  A chain of ideals, fleeting yet infinite.  |
+|  To topple them is to destroy,              |
+|  yet in destruction lies the rebirth.       |
+---------------------------------------------*/</span>
+
+<span class="keyword">pragma solidity</span> <span class="string">^0.8.0</span>;
+
+<span class="keyword">contract</span> <span class="function">DominoFactory</span> {
+    
+    <span class="comment">// You can topple the dominoes over and over again.</span>
+    <span class="keyword">function</span> <span class="function">place</span>() <span class="keyword">public returns</span> (<span class="keyword">address</span>) {
+        Domino[17] <span class="keyword">memory</span> dominos;
+        dominos[0] = <span class="keyword">new</span> SocialWelfare();
+        dominos[1] = <span class="keyword">new</span> FoodSupply();
+        dominos[2] = <span class="keyword">new</span> HealthcareService();
+        dominos[3] = <span class="keyword">new</span> EducationalSupport();
+        dominos[4] = <span class="keyword">new</span> GenderEquality();
+        dominos[5] = <span class="keyword">new</span> WaterResourceManagement();
+        dominos[6] = <span class="keyword">new</span> RenewableEnergy();
+        dominos[7] = <span class="keyword">new</span> LaborStandards();
+        dominos[8] = <span class="keyword">new</span> InfrastructureInvestment();
+        dominos[9] = <span class="keyword">new</span> SocialInclusion();
+        dominos[10] = <span class="keyword">new</span> UrbanPlanning();
+        dominos[11] = <span class="keyword">new</span> CircularEconomy();
+        dominos[12] = <span class="keyword">new</span> EmissionReduction();
+        dominos[13] = <span class="keyword">new</span> MarineConservation();
+        dominos[14] = <span class="keyword">new</span> ForestConservation();
+        dominos[15] = <span class="keyword">new</span> Peacebuilding();
+        dominos[16] = <span class="keyword">new</span> InternationalCooperation();
+        
+        <span class="keyword">for</span> (uint256 i = 0; i < dominos.length - 1; i++) {
+            dominos[i].place(address(dominos[i + 1]));
+        }
+        <span class="keyword">return</span> address(dominos[0]);
+    }
+    
+    <span class="comment">// Destroy everything. Ref. EIP-6780.</span>
+    <span class="keyword">function</span> <span class="function">placeAndTopple</span>() <span class="keyword">public</span> {
+        <span class="keyword">address</span> domino01 = place();
+        Domino(payable(domino01)).topple();
+    }
+}</pre>
+            </div>
+        </div>
+        </div>
+        
+        <div class="declarations-section">
+            <div class="container">
+                <h2>SEVENTEEN CONTRACTS</h2>
+                <p class="section-subtitle">As they appear on Etherscan—comments that exist, but not where you think.</p>
+                
+                <div class="source-carousel">
+                    <div class="source-navigation">
+                        <select class="source-selector" onchange="showSource(this.value)">
+                            <option value="0">01_SocialWelfare.sol</option>
+                            <option value="1">02_FoodSupply.sol</option>
+                            <option value="2">03_HealthcareService.sol</option>
+                            <option value="3">04_EducationalSupport.sol</option>
+                            <option value="4">05_GenderEquality.sol</option>
+                            <option value="5">06_WaterResourceManagement.sol</option>
+                            <option value="6">07_RenewableEnergy.sol</option>
+                            <option value="7">08_LaborStandards.sol</option>
+                            <option value="8">09_InfrastructureInvestment.sol</option>
+                            <option value="9">10_SocialInclusion.sol</option>
+                            <option value="10">11_UrbanPlanning.sol</option>
+                            <option value="11">12_CircularEconomy.sol</option>
+                            <option value="12">13_EmissionReduction.sol</option>
+                            <option value="13">14_MarineConservation.sol</option>
+                            <option value="14">15_ForestConservation.sol</option>
+                            <option value="15">16_Peacebuilding.sol</option>
+                            <option value="16">17_InternationalCooperation.sol</option>
+                        </select>
+                        <div class="source-nav-buttons">
+                            <button onclick="navigateSource(-1)" title="Previous">←</button>
+                            <button onclick="navigateSource(1)" title="Next">→</button>
+                        </div>
+                    </div>
+                    
+                    <div class="source-display">
+                        <div class="source-display-inner" id="sourceDisplay">
+                            <!-- Source codes will be displayed here -->
+                        </div>
+                    </div>
+                    
+
+                </div>
+            </div>
+        </div>
+        
+        <div class="container">
+            <div class="philosophical-note">
+                <p>
+                    In the blockchain's immutable ledger, we inscribe our promises and watch them fall.
+                </p>
+                <p>
+                    Each smart contract represents an ideal—a commitment humanity makes to itself. Through SELFDESTRUCT, we confront the paradox of permanence and transience.
+                </p>
+                <p>
+                    This is not merely code. It is a meditation on trust, a performance of fragility, an endless cycle of creation and destruction that mirrors our own aspirations.
+                </p>
+        </div>
+    </div>
+    
+    <div class="quantum-indicator" id="quantumState">
+        SUPERPOSITION
+    </div>
+    
+    <script>
+        const goals = [
+            'SocialWelfare',
+            'FoodSupply',
+            'HealthcareService',
+            'EducationalSupport',
+            'GenderEquality',
+            'WaterResource',
+            'RenewableEnergy',
+            'LaborStandards',
+            'Infrastructure',
+            'SocialInclusion',
+            'UrbanPlanning',
+            'CircularEconomy',
+            'EmissionReduction',
+            'MarineConservation',
+            'ForestConservation',
+            'Peacebuilding',
+            'InternationalCoop'
+        ];
+        
+        const sourceCodes = [
+            {
+                filename: '01_SocialWelfare.sol',
+                content: `<span class="declaration-comment">/*-----------------------------------------
+|        Declaration to End Poverty       |
+-------------------------------------------
+
+Poverty is not inevitable. It is a challenge we can overcome together.  
+We declare our unyielding commitment to end poverty in all its forms everywhere.  
+
+Poverty denies dignity, restricts opportunities, and limits the potential of millions.  
+To overcome it, we must act boldly, with systems that empower and solutions that endure.  
+
+Principles:
+1. Equal access to education, healthcare, housing, clean water, and food.
+2. Inclusive systems to empower individuals and communities.
+3. Climate action for a sustainable future.
+4. Justice and peace to eliminate conflict and inequality.
+
+This is a shared mission. Together, we consign poverty to the past.  
+Now is the time to act. A brighter future is within our grasp.
+-----------------------------------------*/</span>
+
+<span class="comment">// SPDX-License-Identifier: WTFPL</span>
+<span class="keyword">pragma solidity</span> <span class="string">^0.8.0</span>;
+
+<span class="keyword">import</span> <span class="string">"./Domino.sol"</span>;
+
+<span class="keyword">contract</span> <span class="function">SocialWelfare</span> <span class="keyword">is</span> Domino {
+    <span class="keyword">string public</span> contractName = <span class="string">"SocialWelfare"</span>;
+}`
+            },
+            {
+                filename: '02_FoodSupply.sol',
+                content: `<span class="declaration-comment">/*-----------------------------------------
+|        Declaration for Food Supply       |
+-------------------------------------------
+
+Food is a fundamental human right.  
+We commit to ensuring access to sufficient, safe, and nutritious food for all.
+
+Principles:
+1. Enhance agricultural productivity and ensure sustainable food systems.
+2. Support local farmers and reduce food wastage globally.
+3. Guarantee equitable distribution of food resources.
+4. Address hunger and malnutrition in vulnerable populations.
+
+Together, we can build a world free from hunger, where everyone thrives.
+-----------------------------------------*/</span>
+
+<span class="comment">// SPDX-License-Identifier: WTFPL</span>
+<span class="keyword">pragma solidity</span> <span class="string">^0.8.0</span>;
+
+<span class="keyword">import</span> <span class="string">"./Domino.sol"</span>;
+
+<span class="keyword">contract</span> <span class="function">FoodSupply</span> <span class="keyword">is</span> Domino {
+    <span class="keyword">string public</span> contractName = <span class="string">"FoodSupply"</span>;
+}`
+            },
+            {
+                filename: '03_HealthcareService.sol',
+                content: `<span class="declaration-comment">/*-----------------------------------------
+|    Declaration for Healthcare Service    |
+-------------------------------------------
+
+Health is the foundation of prosperity and dignity.  
+We pledge to create equitable access to quality healthcare services.
+
+Principles:
+1. Strengthen healthcare systems and improve global access.
+2. Address health disparities and support vulnerable populations.
+3. Foster innovation in medicine and public health.
+4. Promote preventive care and health education for all.
+
+Now is the time to ensure health for every individual, everywhere.
+-----------------------------------------*/</span>
+
+<span class="comment">// SPDX-License-Identifier: WTFPL</span>
+<span class="keyword">pragma solidity</span> <span class="string">^0.8.0</span>;
+
+<span class="keyword">import</span> <span class="string">"./Domino.sol"</span>;
+
+<span class="keyword">contract</span> <span class="function">HealthcareService</span> <span class="keyword">is</span> Domino {
+    <span class="keyword">string public</span> contractName = <span class="string">"HealthcareService"</span>;
+}`
+            },
+            {
+                filename: '04_EducationalSupport.sol',
+                content: `<span class="declaration-comment">/*-----------------------------------------
+|     Declaration for Educational Support  |
+-------------------------------------------
+
+Education empowers individuals and transforms societies.  
+We commit to ensuring access to quality education for everyone.
+
+Principles:
+1. Expand opportunities for lifelong learning and skills development.
+2. Promote inclusivity and equitable access to education.
+3. Leverage technology to bridge educational gaps.
+4. Foster critical thinking and global citizenship.
+
+Together, we will build a future where knowledge shapes equality and opportunity.
+-----------------------------------------*/</span>
+
+<span class="comment">// SPDX-License-Identifier: WTFPL</span>
+<span class="keyword">pragma solidity</span> <span class="string">^0.8.0</span>;
+
+<span class="keyword">import</span> <span class="string">"./Domino.sol"</span>;
+
+<span class="keyword">contract</span> <span class="function">EducationalSupport</span> <span class="keyword">is</span> Domino {
+    <span class="keyword">string public</span> contractName = <span class="string">"EducationalSupport"</span>;
+}`
+            },
+            {
+                filename: '05_GenderEquality.sol',
+                content: `<span class="declaration-comment">/*-----------------------------------------
+|        Declaration for Gender Equality   |
+-------------------------------------------
+
+Equality is a right, not a privilege.  
+We commit to eliminating gender-based discrimination in all forms.
+
+Principles:
+1. Promote equal opportunities in education, work, and leadership.
+2. Protect rights and ensure safety for all genders.
+3. Challenge societal norms that perpetuate inequality.
+4. Empower individuals to advocate for inclusivity and respect.
+
+Together, we will create a future where everyone can flourish equally.
+-----------------------------------------*/</span>
+
+<span class="comment">// SPDX-License-Identifier: WTFPL</span>
+<span class="keyword">pragma solidity</span> <span class="string">^0.8.0</span>;
+
+<span class="keyword">import</span> <span class="string">"./Domino.sol"</span>;
+
+<span class="keyword">contract</span> <span class="function">GenderEquality</span> <span class="keyword">is</span> Domino {
+    <span class="keyword">string public</span> contractName = <span class="string">"GenderEquality"</span>;
+}`
+            },
+            {
+                filename: '06_WaterResourceManagement.sol',
+                content: `<span class="declaration-comment">/*-----------------------------------------
+|  Declaration for Water Resource Management |
+-------------------------------------------
+
+Water is life. It must be protected and shared responsibly.  
+We commit to ensuring sustainable access to clean water for all.
+
+Principles:
+1. Protect water ecosystems and reduce pollution.
+2. Promote efficient and equitable water use.
+3. Enhance water management systems globally.
+4. Address water scarcity and climate-related challenges.
+
+Together, we will secure the future of this precious resource.
+-----------------------------------------*/</span>
+
+<span class="comment">// SPDX-License-Identifier: WTFPL</span>
+<span class="keyword">pragma solidity</span> <span class="string">^0.8.0</span>;
+
+<span class="keyword">import</span> <span class="string">"./Domino.sol"</span>;
+
+<span class="keyword">contract</span> <span class="function">WaterResourceManagement</span> <span class="keyword">is</span> Domino {
+    <span class="keyword">string public</span> contractName = <span class="string">"WaterResourceManagement"</span>;
+}`
+            },
+            {
+                filename: '07_RenewableEnergy.sol',
+                content: `<span class="declaration-comment">/*-----------------------------------------
+|       Declaration for Renewable Energy    |
+-------------------------------------------
+
+Energy drives progress. Sustainability ensures a brighter future.  
+We commit to advancing renewable energy for a sustainable planet.
+
+Principles:
+1. Promote the adoption of clean and renewable energy sources.
+2. Support innovation in energy efficiency and storage.
+3. Transition away from fossil fuels to sustainable alternatives.
+4. Ensure equitable access to affordable and sustainable energy.
+
+Together, we will power a future fueled by sustainability.
+-----------------------------------------*/</span>
+
+<span class="comment">// SPDX-License-Identifier: WTFPL</span>
+<span class="keyword">pragma solidity</span> <span class="string">^0.8.0</span>;
+
+<span class="keyword">import</span> <span class="string">"./Domino.sol"</span>;
+
+<span class="keyword">contract</span> <span class="function">RenewableEnergy</span> <span class="keyword">is</span> Domino {
+    <span class="keyword">string public</span> contractName = <span class="string">"RenewableEnergy"</span>;
+}`
+            },
+            {
+                filename: '08_LaborStandards.sol',
+                content: `<span class="declaration-comment">/*-----------------------------------------
+|        Declaration for Labor Standards    |
+-------------------------------------------
+
+Dignity in labor is a cornerstone of equity and justice.  
+We commit to upholding fair labor standards worldwide.
+
+Principles:
+1. Protect workers' rights and ensure fair wages.
+2. Eradicate forced labor, child labor, and exploitation.
+3. Promote safe and healthy working conditions.
+4. Foster inclusive workplaces that respect diversity.
+
+Together, we will build an economy grounded in dignity and fairness.
+-----------------------------------------*/</span>
+
+<span class="comment">// SPDX-License-Identifier: WTFPL</span>
+<span class="keyword">pragma solidity</span> <span class="string">^0.8.0</span>;
+
+<span class="keyword">import</span> <span class="string">"./Domino.sol"</span>;
+
+<span class="keyword">contract</span> <span class="function">LaborStandards</span> <span class="keyword">is</span> Domino {
+    <span class="keyword">string public</span> contractName = <span class="string">"LaborStandards"</span>;
+}`
+            },
+            {
+                filename: '09_InfrastructureInvestment.sol',
+                content: `<span class="declaration-comment">/*-----------------------------------------
+|    Declaration for Infrastructure Investment |
+-------------------------------------------
+
+Infrastructure connects communities and drives development.  
+We commit to investing in sustainable and inclusive infrastructure.
+
+Principles:
+1. Build resilient and climate-smart infrastructure.
+2. Ensure equitable access to transportation and utilities.
+3. Support innovation in sustainable urban design.
+4. Prioritize projects that uplift underserved communities.
+
+Together, we will lay the foundation for a thriving and connected world.
+-----------------------------------------*/</span>
+
+<span class="comment">// SPDX-License-Identifier: WTFPL</span>
+<span class="keyword">pragma solidity</span> <span class="string">^0.8.0</span>;
+
+<span class="keyword">import</span> <span class="string">"./Domino.sol"</span>;
+
+<span class="keyword">contract</span> <span class="function">InfrastructureInvestment</span> <span class="keyword">is</span> Domino {
+    <span class="keyword">string public</span> contractName = <span class="string">"InfrastructureInvestment"</span>;
+}`
+            },
+            {
+                filename: '10_SocialInclusion.sol',
+                content: `<span class="declaration-comment">/*-----------------------------------------
+|       Declaration for Social Inclusion    |
+-------------------------------------------
+
+Inclusion is the essence of a just society.  
+We commit to fostering social equity and embracing diversity.
+
+Principles:
+1. Eradicate barriers to inclusion and equity.
+2. Promote representation and participation for marginalized groups.
+3. Build systems that empower individuals of all backgrounds.
+4. Celebrate diversity as a strength.
+
+Together, we will create a society where everyone belongs.
+-----------------------------------------*/</span>
+
+<span class="comment">// SPDX-License-Identifier: WTFPL</span>
+<span class="keyword">pragma solidity</span> <span class="string">^0.8.0</span>;
+
+<span class="keyword">import</span> <span class="string">"./Domino.sol"</span>;
+
+<span class="keyword">contract</span> <span class="function">SocialInclusion</span> <span class="keyword">is</span> Domino {
+    <span class="keyword">string public</span> contractName = <span class="string">"SocialInclusion"</span>;
+}`
+            },
+            {
+                filename: '11_UrbanPlanning.sol',
+                content: `<span class="declaration-comment">/*-----------------------------------------
+|         Declaration for Urban Planning    |
+-------------------------------------------
+
+Cities are the heart of modern life.  
+We commit to designing urban spaces that are sustainable and inclusive.
+
+Principles:
+1. Promote smart growth and sustainable urbanization.
+2. Ensure affordable housing and accessible public services.
+3. Create green spaces and mitigate urban environmental impacts.
+4. Foster innovation to make cities more livable for all.
+
+Together, we will build cities that thrive for generations to come.
+-----------------------------------------*/</span>
+
+<span class="comment">// SPDX-License-Identifier: WTFPL</span>
+<span class="keyword">pragma solidity</span> <span class="string">^0.8.0</span>;
+
+<span class="keyword">import</span> <span class="string">"./Domino.sol"</span>;
+
+<span class="keyword">contract</span> <span class="function">UrbanPlanning</span> <span class="keyword">is</span> Domino {
+    <span class="keyword">string public</span> contractName = <span class="string">"UrbanPlanning"</span>;
+}`
+            },
+            {
+                filename: '12_CircularEconomy.sol',
+                content: `<span class="declaration-comment">/*-----------------------------------------
+|       Declaration for Circular Economy    |
+-------------------------------------------
+
+Waste is a resource in the wrong place.  
+We commit to advancing a circular economy for a sustainable future.
+
+Principles:
+1. Promote recycling, reuse, and reduction of waste.
+2. Support innovation in sustainable product design and materials.
+3. Foster systems that minimize resource extraction.
+4. Build partnerships to close the loop in resource use.
+
+Together, we will transform waste into opportunity and protect our planet.
+-----------------------------------------*/</span>
+
+<span class="comment">// SPDX-License-Identifier: WTFPL</span>
+<span class="keyword">pragma solidity</span> <span class="string">^0.8.0</span>;
+
+<span class="keyword">import</span> <span class="string">"./Domino.sol"</span>;
+
+<span class="keyword">contract</span> <span class="function">CircularEconomy</span> <span class="keyword">is</span> Domino {
+    <span class="keyword">string public</span> contractName = <span class="string">"CircularEconomy"</span>;
+}`
+            },
+            {
+                filename: '13_EmissionReduction.sol',
+                content: `<span class="declaration-comment">/*-----------------------------------------
+|        Declaration for Emission Reduction |
+-------------------------------------------
+
+The air we breathe connects us all.  
+We commit to reducing emissions for a cleaner and healthier planet.
+
+Principles:
+1. Transition to low-carbon technologies and energy systems.
+2. Strengthen policies that support emissions reductions.
+3. Promote sustainable transportation and urban planning.
+4. Invest in global collaboration to combat climate change.
+
+Together, we will breathe life into a future free from harmful emissions.
+-----------------------------------------*/</span>
+
+<span class="comment">// SPDX-License-Identifier: WTFPL</span>
+<span class="keyword">pragma solidity</span> <span class="string">^0.8.0</span>;
+
+<span class="keyword">import</span> <span class="string">"./Domino.sol"</span>;
+
+<span class="keyword">contract</span> <span class="function">EmissionReduction</span> <span class="keyword">is</span> Domino {
+    <span class="keyword">string public</span> contractName = <span class="string">"EmissionReduction"</span>;
+}`
+            },
+            {
+                filename: '14_MarineConservation.sol',
+                content: `<span class="declaration-comment">/*-----------------------------------------
+|       Declaration for Marine Conservation |
+-------------------------------------------
+
+The oceans are our shared lifeline.  
+We commit to protecting marine ecosystems and ensuring their health.
+
+Principles:
+1. Combat marine pollution and preserve biodiversity.
+2. Promote sustainable fishing practices and coastal management.
+3. Strengthen global efforts to protect marine habitats.
+4. Empower communities to steward the ocean's resources.
+
+Together, we will safeguard our oceans for generations to come.
+-----------------------------------------*/</span>
+
+<span class="comment">// SPDX-License-Identifier: WTFPL</span>
+<span class="keyword">pragma solidity</span> <span class="string">^0.8.0</span>;
+
+<span class="keyword">import</span> <span class="string">"./Domino.sol"</span>;
+
+<span class="keyword">contract</span> <span class="function">MarineConservation</span> <span class="keyword">is</span> Domino {
+    <span class="keyword">string public</span> contractName = <span class="string">"MarineConservation"</span>;
+}`
+            },
+            {
+                filename: '15_ForestConservation.sol',
+                content: `<span class="declaration-comment">/*-----------------------------------------
+|       Declaration for Forest Conservation |
+-------------------------------------------
+
+Forests are the lungs of our planet.  
+We commit to conserving and restoring forests worldwide.
+
+Principles:
+1. Prevent deforestation and combat illegal logging.
+2. Promote sustainable forestry practices.
+3. Restore degraded lands and expand forest cover.
+4. Protect biodiversity and empower indigenous communities.
+
+Together, we will ensure forests continue to sustain life on Earth.
+-----------------------------------------*/</span>
+
+<span class="comment">// SPDX-License-Identifier: WTFPL</span>
+<span class="keyword">pragma solidity</span> <span class="string">^0.8.0</span>;
+
+<span class="keyword">import</span> <span class="string">"./Domino.sol"</span>;
+
+<span class="keyword">contract</span> <span class="function">ForestConservation</span> <span class="keyword">is</span> Domino {
+    <span class="keyword">string public</span> contractName = <span class="string">"ForestConservation"</span>;
+}`
+            },
+            {
+                filename: '16_Peacebuilding.sol',
+                content: `<span class="declaration-comment">/*-----------------------------------------
+|          Declaration for Peacebuilding    |
+-------------------------------------------
+
+Peace is the foundation of progress and prosperity.  
+We commit to fostering peaceful and just societies worldwide.
+
+Principles:
+1. Address the root causes of conflict and violence.
+2. Promote dialogue, reconciliation, and understanding.
+3. Strengthen institutions that uphold justice and human rights.
+4. Empower communities to build and sustain peace.
+
+Together, we will create a world where peace is not just an ideal but a reality.
+-----------------------------------------*/</span>
+
+<span class="comment">// SPDX-License-Identifier: WTFPL</span>
+<span class="keyword">pragma solidity</span> <span class="string">^0.8.0</span>;
+
+<span class="keyword">import</span> <span class="string">"./Domino.sol"</span>;
+
+<span class="keyword">contract</span> <span class="function">Peacebuilding</span> <span class="keyword">is</span> Domino {
+    <span class="keyword">string public</span> contractName = <span class="string">"Peacebuilding"</span>;
+}`
+            },
+            {
+                filename: '17_InternationalCooperation.sol',
+                content: `<span class="declaration-comment">/*-----------------------------------------
+|      Declaration for International Cooperation |
+-------------------------------------------
+
+The challenges we face transcend borders.  
+We commit to fostering international collaboration for shared progress.
+
+Principles:
+1. Strengthen partnerships to address global challenges.
+2. Promote equitable sharing of resources and knowledge.
+3. Support sustainable development and humanitarian efforts.
+4. Advocate for inclusive and multilateral decision-making.
+
+Together, we will build a future where unity leads to universal prosperity.
+-----------------------------------------*/</span>
+
+<span class="comment">// SPDX-License-Identifier: WTFPL</span>
+<span class="keyword">pragma solidity</span> <span class="string">^0.8.0</span>;
+
+<span class="keyword">import</span> <span class="string">"./Domino.sol"</span>;
+
+<span class="keyword">contract</span> <span class="function">InternationalCooperation</span> <span class="keyword">is</span> Domino {
+    <span class="keyword">string public</span> contractName = <span class="string">"InternationalCooperation"</span>;
+}`
+            }
+        ];
+        
+        let currentSource = 0;
+        let currentMode = null;
+        let dominoElements = [];
+        let sourceElements = [];
+        let isDominoAnimating = false;
+        
+        function initializeSourceDisplay() {
+            const display = document.getElementById('sourceDisplay');
+            if (!display) return;
+            
+            display.innerHTML = '';
+            sourceElements = [];
+            
+            sourceCodes.forEach((source, index) => {
+                const codeElement = document.createElement('pre');
+                codeElement.className = `source-code ${index === 0 ? 'active' : ''}`;
+                codeElement.innerHTML = source.content;
+                display.appendChild(codeElement);
+                sourceElements.push(codeElement);
+            });
+        }
+        
+        function showSource(index) {
+            if (isDominoAnimating) return;
+            if (!sourceElements || sourceElements.length === 0) return;
+            
+            const newIndex = parseInt(index);
+            if (newIndex === currentSource) return;
+            if (newIndex < 0 || newIndex >= sourceElements.length) return;
+            
+            // Prevent rapid selection
+            isDominoAnimating = true;
+            
+            // Determine direction and animation classes
+            const direction = newIndex > currentSource ? 1 : -1;
+            const fallClass = direction > 0 ? 'domino-falling-right' : 'domino-falling-left';
+            const riseClass = direction > 0 ? 'domino-rising-left' : 'domino-rising-right';
+            
+            // Domino falling animation
+            if (sourceElements[currentSource]) {
+                sourceElements[currentSource].classList.remove('active');
+                sourceElements[currentSource].classList.add(fallClass);
+            }
+            
+            setTimeout(() => {
+                if (sourceElements[newIndex]) {
+                    sourceElements[newIndex].classList.add(riseClass);
+                    
+                    setTimeout(() => {
+                        if (sourceElements[newIndex]) {
+                            sourceElements[newIndex].classList.remove(riseClass);
+                            sourceElements[newIndex].classList.add('active');
+                        }
+                        
+                        // Clean up the fallen one
+                        if (sourceElements[currentSource]) {
+                            sourceElements[currentSource].classList.remove(fallClass);
+                        }
+                        
+                        currentSource = newIndex;
+                        document.querySelector('.source-selector').value = currentSource;
+                        
+                        // Re-enable selection
+                        isDominoAnimating = false;
+                    }, 1450);
+                }
+            }, 100);
+        }
+        
+        function navigateSource(direction) {
+            if (isDominoAnimating) return;
+            if (!sourceElements || sourceElements.length === 0) return;
+            
+            const newIndex = (currentSource + direction + sourceCodes.length) % sourceCodes.length;
+            
+            // Prevent rapid clicking
+            isDominoAnimating = true;
+            
+            // Determine fall direction based on navigation direction
+            const fallClass = direction > 0 ? 'domino-falling-right' : 'domino-falling-left';
+            const riseClass = direction > 0 ? 'domino-rising-left' : 'domino-rising-right';
+            
+            // Domino falling animation for single navigation
+            if (sourceElements[currentSource]) {
+                sourceElements[currentSource].classList.remove('active');
+                sourceElements[currentSource].classList.add(fallClass);
+            }
+            
+            setTimeout(() => {
+                if (sourceElements[newIndex]) {
+                    sourceElements[newIndex].classList.add(riseClass);
+                    
+                    setTimeout(() => {
+                        if (sourceElements[newIndex]) {
+                            sourceElements[newIndex].classList.remove(riseClass);
+                            sourceElements[newIndex].classList.add('active');
+                        }
+                        
+                        // Clean up the fallen one
+                        if (sourceElements[currentSource]) {
+                            sourceElements[currentSource].classList.remove(fallClass);
+                        }
+                        
+                        currentSource = newIndex;
+                        const selector = document.querySelector('.source-selector');
+                        if (selector) selector.value = currentSource;
+                        
+                        // Re-enable navigation
+                        isDominoAnimating = false;
+                    }, 1450);
+                }
+            }, 100);
+        }
+        
+        function startDominoEffect() {
+            if (isDominoAnimating) return;
+            if (!sourceElements || sourceElements.length === 0) return;
+            
+            isDominoAnimating = true;
+            
+            let startIndex = currentSource;
+            let delay = 0;
+            
+            // Create domino falling effect through all contracts
+            for (let i = 0; i < sourceCodes.length; i++) {
+                const index = (startIndex + i) % sourceCodes.length;
+                const nextIndex = (startIndex + i + 1) % sourceCodes.length;
+                
+                setTimeout(() => {
+                    if (i < sourceCodes.length - 1) {
+                        // Current falls, next rises
+                        if (sourceElements[index]) {
+                            sourceElements[index].classList.remove('active');
+                            sourceElements[index].classList.add('domino-falling');
+                        }
+                        
+                        setTimeout(() => {
+                            if (sourceElements[nextIndex]) {
+                                sourceElements[nextIndex].classList.add('domino-rising');
+                                
+                                setTimeout(() => {
+                                    if (sourceElements[nextIndex]) {
+                                        sourceElements[nextIndex].classList.remove('domino-rising');
+                                        sourceElements[nextIndex].classList.add('active');
+                                    }
+                                }, 450);
+                            }
+                        }, 50);
+                    } else {
+                        // Last one falls
+                        if (sourceElements[index]) {
+                            sourceElements[index].classList.remove('active');
+                            sourceElements[index].classList.add('domino-falling');
+                        }
+                        
+                        // Reset to first after a pause
+                        setTimeout(() => {
+                            // Clean up all classes
+                            sourceElements.forEach(el => {
+                                if (el) {
+                                    el.classList.remove('active', 'domino-falling', 'domino-rising');
+                                }
+                            });
+                            
+                            // Show first one again
+                            if (sourceElements[0]) {
+                                sourceElements[0].classList.add('active');
+                            }
+                            currentSource = 0;
+                            const selector = document.querySelector('.source-selector');
+                            if (selector) selector.value = 0;
+                            isDominoAnimating = false;
+                        }, 1000);
+                    }
+                }, delay);
+                
+                delay += 120; // Slightly faster for continuous effect
+            }
+        }
+        
+        function initializeDominos() {
+            const field = document.getElementById('dominoField');
+            field.innerHTML = '';
+            dominoElements = [];
+            
+            // Calculate total width and center position
+            const dominoSpacing = 50;
+            const totalWidth = (17 - 1) * dominoSpacing; // 16 * 50 = 800px
+            const fieldWidth = field.offsetWidth;
+            const startX = (fieldWidth - totalWidth) / 2;
+            
+            // Display all 17 dominos with placement animation
+            for (let i = 0; i < 17; i++) {
+                const wrapper = document.createElement('div');
+                wrapper.style.position = 'absolute';
+                wrapper.style.left = `${startX + (i * dominoSpacing)}px`;
+                wrapper.style.top = '50%';
+                wrapper.style.transform = 'translateY(-50%)';
+                
+                const domino = document.createElement('div');
+                domino.className = 'domino';
+                
+                const label = document.createElement('div');
+                label.className = 'domino-label';
+                label.textContent = i < goals.length ? goals[i] : '';
+                
+                wrapper.appendChild(domino);
+                wrapper.appendChild(label);
+                field.appendChild(wrapper);
+                
+                dominoElements.push(domino);
+                
+                // Animate placement with staggered timing
+                setTimeout(() => {
+                    domino.classList.add('placed');
+                }, i * 150); // Slower placement for better visual effect
+            }
+        }
+        
+        function executeTrue() {
+            currentMode = 'true';
+            updateQuantumState('TRUE DESTRUCTION');
+            
+            // Place dominos with animation
+            initializeDominos();
+            
+            // Wait for all dominos to be placed, then start toppling
+            const placementTime = 17 * 150; // Time for all dominos to be placed
+            setTimeout(() => {
+                dominoElements.forEach((domino, i) => {
+                    setTimeout(() => {
+                        domino.classList.add('falling');
+                        setTimeout(() => {
+                            // TRUE DESTRUCTION: ドミノが完全に消える
+                            domino.classList.add('destroyed-true');
+                        }, 800);
+                    }, i * 100);
+                });
+                
+                // Destroy code block
+                setTimeout(() => {
+                    document.getElementById('dominoCode').classList.add('destructing');
+                    setTimeout(() => {
+                        document.getElementById('dominoCode').classList.remove('destructing');
+                    }, 2000);
+                }, 17 * 100 + 500);
+            }, placementTime + 500); // Extra 500ms pause after placement
+        }
+        
+        function executeApparent() {
+            currentMode = 'apparent';
+            updateQuantumState('MOCK DESTRUCTION');
+            
+            // Place dominos with animation
+            initializeDominos();
+            
+            // Wait for all dominos to be placed, then start toppling
+            const placementTime = 17 * 150; // Time for all dominos to be placed
+            setTimeout(() => {
+                dominoElements.forEach((domino, i) => {
+                    setTimeout(() => {
+                        // MOCK DESTRUCTION: 半透明な幻影が倒れるが、実際のドミノは直立のまま
+                        domino.classList.add('mock-falling');
+                        
+                        // 少し遅れて幻影が倒れるアニメーション開始
+                        setTimeout(() => {
+                            domino.classList.add('active');
+                            
+                            // 倒れたらすぐにフェードアウト開始（0.8秒後）
+                            setTimeout(() => {
+                                domino.classList.add('fading');
+                                
+                                // フェードアウト完了後にクラスを削除
+                                setTimeout(() => {
+                                    domino.classList.remove('mock-falling', 'active', 'fading');
+                                }, 800); // フェードアウト時間と同じ
+                            }, 800); // 倒れるアニメーション完了後すぐ
+                        }, 100);
+                    }, i * 100);
+                });
+            }, placementTime + 500); // Extra 500ms pause after placement
+        }
+        
+        function updateQuantumState(state) {
+            const indicator = document.getElementById('quantumState');
+            indicator.textContent = state;
+            indicator.className = 'quantum-indicator';
+            
+            if (state === 'TRUE DESTRUCTION') {
+                indicator.classList.add('true-state');
+            } else if (state === 'MOCK DESTRUCTION') {
+                indicator.classList.add('apparent-state');
+            }
+            
+            setTimeout(() => {
+                indicator.textContent = 'SUPERPOSITION';
+                indicator.className = 'quantum-indicator';
+            }, 10000);
+        }
+        
+        function showAbout() {
+            alert('Contract Domino\n\nA work existing on the Ethereum blockchain.\nEach execution is a performance of creation and destruction.\n\nThe choice between true and apparent destruction reflects the quantum nature of promises in our digital age.');
+        }
+        
+        // Initialize on load
+        window.addEventListener('load', () => {
+            initializeDominos();
+            initializeSourceDisplay();
+        });
+        
+        // Re-center dominos on window resize
+        window.addEventListener('resize', () => {
+            if (dominoElements.length > 0) {
+                const field = document.getElementById('dominoField');
+                const dominoSpacing = 50;
+                const totalWidth = (17 - 1) * dominoSpacing;
+                const fieldWidth = field.offsetWidth;
+                const startX = (fieldWidth - totalWidth) / 2;
+                
+                // Update positions of existing dominos
+                const wrappers = field.querySelectorAll('div[style*="position: absolute"]');
+                wrappers.forEach((wrapper, i) => {
+                    wrapper.style.left = `${startX + (i * dominoSpacing)}px`;
+                });
+            }
+        });
+        
+        // Keyboard navigation for source
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') navigateSource(-1);
+            if (e.key === 'ArrowRight') navigateSource(1);
+            if (e.key === ' ' || e.key === 'Enter') {
+                e.preventDefault();
+                startDominoEffect();
+            }
+        });
+    </script>
+    
+    <div class="specifications">
+        <h2>SPECIFICATIONS</h2>
+        <div class="spec-table">
+            <div class="spec-row">
+                <div class="spec-label">Title:</div>
+                <div class="spec-value">CONTRACT DOMINO</div>
+            </div>
+            <div class="spec-row">
+                <div class="spec-label">Author:</div>
+                <div class="spec-value">Zeroichi Arakawa</div>
+            </div>
+            <div class="spec-row">
+                <div class="spec-label">Year:</div>
+                <div class="spec-value">2025</div>
+            </div>
+            <div class="spec-row">
+                <div class="spec-label">Blockchain:</div>
+                <div class="spec-value">Ethereum</div>
+            </div>
+            <div class="spec-row">
+                <div class="spec-label">Deployed Contracts:</div>
+                <div class="spec-value">
+                    DominoFactory: <a href="https://etherscan.io/address/0xa3058d4f3428bab0d1650a6f506e745c3658fd3b" target="_blank">0xa3058d4f3428bab0d1650a6f506e745c3658fd3b</a><br>
+                    17 Dominos: Dynamically created and destroyed<br>
+                    Each execution creates new contract instances
+                </div>
+            </div>
+            <div class="spec-row">
+                <div class="spec-label">Medium:</div>
+                <div class="spec-value">
+                    On-chain code (Solidity), Smart contract interactions<br>
+                    Exhibitable as conceptual code art and interactive blockchain interface
+                </div>
+            </div>
+            <div class="spec-row">
+                <div class="spec-label">License:</div>
+                <div class="spec-value">Source code licensed under <a href="https://en.wikipedia.org/wiki/WTFPL" target="_blank">WTFPL</a>.</div>
+            </div>
+        </div>
+    </div>
+    
+    <footer style="text-align: center; padding: 40px 0; border-top: 1px solid #f0f0f0; margin-top: 100px;">
+        <div style="display: flex; justify-content: center; gap: 40px; font-size: 12px; letter-spacing: 0.1em;">
+            <a href="https://github.com/avcdsld/contract-domino" target="_blank" style="color: #666; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#000'" onmouseout="this.style.color='#666'">GitHub</a>
+            <a href="https://etherscan.io/address/0xa3058d4f3428bab0d1650a6f506e745c3658fd3b#code" target="_blank" style="color: #666; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#000'" onmouseout="this.style.color='#666'">Etherscan</a>
+                    </div>
+    </footer>
+</body>
+</html>

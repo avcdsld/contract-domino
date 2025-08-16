@@ -10,4 +10,10 @@ This is a poem of code that sets off a chain of destruction.
 
 - You can topple the dominoes from here: https://etherscan.io/address/0xd8a518854513dc3681aa0287a2e674dd5e03b5f7#writeContract
 
+### Sequence Diagrams
+
+- [Option1: Placing and toppling dominoes simultaneously](https://github.com/avcdsld/contract-domino/blob/main/doc/option1.md)
+
+- [Option2: Placing and toppling dominoes separately](https://github.com/avcdsld/contract-domino/blob/main/doc/option2.md)
+
 Licensed under WTFPL

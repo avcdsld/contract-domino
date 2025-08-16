@@ -50,8 +50,7 @@
             height: 400px;
             margin: 0;
             background: linear-gradient(to bottom, #ffffff 0%, #fafafa 100%);
-            overflow-x: auto;
-            overflow-y: hidden;
+            overflow: hidden;
         }
         
         .domino {
@@ -72,7 +71,7 @@
         
         .domino.falling {
             transform: rotate(85deg);
-            opacity: 0.3;
+            opacity: 1;
         }
         
         .domino.destroyed-true {
@@ -94,7 +93,7 @@
         }
 
         .domino.mock-falling {
-            opacity: 0.8;
+            opacity: 0.6;
         }
         
         .domino.mock-falling::after {
@@ -113,7 +112,7 @@
         }
         
         .domino.mock-falling.active::after {
-            opacity: 0.4;
+            opacity: 1;
             transform: rotate(85deg);
         }
         
@@ -454,97 +453,97 @@
                 opacity: 1;
             }
             5% {
-                transform: rotateX(-1deg);
+                transform: rotateX(1deg);
                 transform-origin: bottom center;
                 opacity: 0.99;
             }
             10% {
-                transform: rotateX(-3deg);
+                transform: rotateX(3deg);
                 transform-origin: bottom center;
                 opacity: 0.98;
             }
             15% {
-                transform: rotateX(-6deg);
+                transform: rotateX(6deg);
                 transform-origin: bottom center;
                 opacity: 0.96;
             }
             20% {
-                transform: rotateX(-10deg);
+                transform: rotateX(10deg);
                 transform-origin: bottom center;
                 opacity: 0.94;
             }
             25% {
-                transform: rotateX(-15deg);
+                transform: rotateX(15deg);
                 transform-origin: bottom center;
                 opacity: 0.91;
             }
             30% {
-                transform: rotateX(-21deg);
+                transform: rotateX(21deg);
                 transform-origin: bottom center;
                 opacity: 0.88;
             }
             35% {
-                transform: rotateX(-28deg);
+                transform: rotateX(28deg);
                 transform-origin: bottom center;
                 opacity: 0.84;
             }
             40% {
-                transform: rotateX(-36deg);
+                transform: rotateX(36deg);
                 transform-origin: bottom center;
                 opacity: 0.79;
             }
             45% {
-                transform: rotateX(-45deg);
+                transform: rotateX(45deg);
                 transform-origin: bottom center;
                 opacity: 0.74;
             }
             50% {
-                transform: rotateX(-54deg);
+                transform: rotateX(54deg);
                 transform-origin: bottom center;
                 opacity: 0.68;
             }
             55% {
-                transform: rotateX(-63deg);
+                transform: rotateX(63deg);
                 transform-origin: bottom center;
                 opacity: 0.61;
             }
             60% {
-                transform: rotateX(-71deg);
+                transform: rotateX(71deg);
                 transform-origin: bottom center;
                 opacity: 0.54;
             }
             65% {
-                transform: rotateX(-78deg);
+                transform: rotateX(78deg);
                 transform-origin: bottom center;
                 opacity: 0.46;
             }
             70% {
-                transform: rotateX(-84deg);
+                transform: rotateX(84deg);
                 transform-origin: bottom center;
                 opacity: 0.38;
             }
             75% {
-                transform: rotateX(-88deg);
+                transform: rotateX(88deg);
                 transform-origin: bottom center;
                 opacity: 0.29;
             }
             80% {
-                transform: rotateX(-90deg);
+                transform: rotateX(90deg);
                 transform-origin: bottom center;
                 opacity: 0.2;
             }
             85% {
-                transform: rotateX(-90deg);
+                transform: rotateX(90deg);
                 transform-origin: bottom center;
                 opacity: 0.12;
             }
             90% {
-                transform: rotateX(-90deg);
+                transform: rotateX(90deg);
                 transform-origin: bottom center;
                 opacity: 0.06;
             }
             95% {
-                transform: rotateX(-90deg) rotateY(-75deg);
+                transform: rotateX(90deg);
                 transform-origin: bottom center;
                 opacity: 0.02;
             }
@@ -562,97 +561,97 @@
                 opacity: 1;
             }
             5% {
-                transform: rotateX(1deg);
+                transform: rotateX(-1deg);
                 transform-origin: bottom center;
                 opacity: 0.99;
             }
             10% {
-                transform: rotateX(3deg);
+                transform: rotateX(-3deg);
                 transform-origin: bottom center;
                 opacity: 0.98;
             }
             15% {
-                transform: rotateX(6deg);
+                transform: rotateX(-6deg);
                 transform-origin: bottom center;
                 opacity: 0.96;
             }
             20% {
-                transform: rotateX(10deg);
+                transform: rotateX(-10deg);
                 transform-origin: bottom center;
                 opacity: 0.94;
             }
             25% {
-                transform: rotateX(15deg);
+                transform: rotateX(-15deg);
                 transform-origin: bottom center;
                 opacity: 0.91;
             }
             30% {
-                transform: rotateX(21deg);
+                transform: rotateX(-21deg);
                 transform-origin: bottom center;
                 opacity: 0.88;
             }
             35% {
-                transform: rotateX(28deg);
+                transform: rotateX(-28deg);
                 transform-origin: bottom center;
                 opacity: 0.84;
             }
             40% {
-                transform: rotateX(36deg);
+                transform: rotateX(-36deg);
                 transform-origin: bottom center;
                 opacity: 0.79;
             }
             45% {
-                transform: rotateX(45deg);
+                transform: rotateX(-45deg);
                 transform-origin: bottom center;
                 opacity: 0.74;
             }
             50% {
-                transform: rotateX(54deg);
+                transform: rotateX(-54deg);
                 transform-origin: bottom center;
                 opacity: 0.68;
             }
             55% {
-                transform: rotateX(63deg);
+                transform: rotateX(-63deg);
                 transform-origin: bottom center;
                 opacity: 0.61;
             }
             60% {
-                transform: rotateX(71deg);
+                transform: rotateX(-71deg);
                 transform-origin: bottom center;
                 opacity: 0.54;
             }
             65% {
-                transform: rotateX(78deg);
+                transform: rotateX(-78deg);
                 transform-origin: bottom center;
                 opacity: 0.46;
             }
             70% {
-                transform: rotateX(84deg);
+                transform: rotateX(-84deg);
                 transform-origin: bottom center;
                 opacity: 0.38;
             }
             75% {
-                transform: rotateX(88deg);
+                transform: rotateX(-88deg);
                 transform-origin: bottom center;
                 opacity: 0.29;
             }
             80% {
-                transform: rotateX(90deg);
+                transform: rotateX(-90deg);
                 transform-origin: bottom center;
                 opacity: 0.2;
             }
             85% {
-                transform: rotateX(90deg);
+                transform: rotateX(-90deg);
                 transform-origin: bottom center;
                 opacity: 0.12;
             }
             90% {
-                transform: rotateX(90deg);
+                transform: rotateX(-90deg);
                 transform-origin: bottom center;
                 opacity: 0.06;
             }
             95% {
-                transform: rotateX(90deg);
+                transform: rotateX(-90deg);
                 transform-origin: bottom center;
                 opacity: 0.02;
             }
@@ -666,6 +665,114 @@
         @keyframes dominoRiseRight {
             0% {
                 transform: rotateX(-90deg);
+                transform-origin: bottom center;
+                opacity: 0;
+            }
+            5% {
+                transform: rotateX(90deg);
+                transform-origin: bottom center;
+                opacity: 0.02;
+            }
+            10% {
+                transform: rotateX(90deg);
+                transform-origin: bottom center;
+                opacity: 0.06;
+            }
+            15% {
+                transform: rotateX(90deg);
+                transform-origin: bottom center;
+                opacity: 0.12;
+            }
+            20% {
+                transform: rotateX(90deg);
+                transform-origin: bottom center;
+                opacity: 0.2;
+            }
+            25% {
+                transform: rotateX(88deg);
+                transform-origin: bottom center;
+                opacity: 0.29;
+            }
+            30% {
+                transform: rotateX(84deg);
+                transform-origin: bottom center;
+                opacity: 0.38;
+            }
+            35% {
+                transform: rotateX(78deg);
+                transform-origin: bottom center;
+                opacity: 0.46;
+            }
+            40% {
+                transform: rotateX(71deg);
+                transform-origin: bottom center;
+                opacity: 0.54;
+            }
+            45% {
+                transform: rotateX(63deg);
+                transform-origin: bottom center;
+                opacity: 0.61;
+            }
+            50% {
+                transform: rotateX(54deg);
+                transform-origin: bottom center;
+                opacity: 0.68;
+            }
+            55% {
+                transform: rotateX(45deg);
+                transform-origin: bottom center;
+                opacity: 0.74;
+            }
+            60% {
+                transform: rotateX(36deg);
+                transform-origin: bottom center;
+                opacity: 0.79;
+            }
+            65% {
+                transform: rotateX(28deg);
+                transform-origin: bottom center;
+                opacity: 0.84;
+            }
+            70% {
+                transform: rotateX(21deg);
+                transform-origin: bottom center;
+                opacity: 0.88;
+            }
+            75% {
+                transform: rotateX(15deg);
+                transform-origin: bottom center;
+                opacity: 0.91;
+            }
+            80% {
+                transform: rotateX(10deg);
+                transform-origin: bottom center;
+                opacity: 0.94;
+            }
+            85% {
+                transform: rotateX(6deg);
+                transform-origin: bottom center;
+                opacity: 0.96;
+            }
+            90% {
+                transform: rotateX(3deg);
+                transform-origin: bottom center;
+                opacity: 0.98;
+            }
+            95% {
+                transform: rotateX(1deg);
+                transform-origin: bottom center;
+                opacity: 0.99;
+            }
+            100% {
+                transform: rotateX(0deg);
+                transform-origin: bottom center;
+                opacity: 1;
+            }
+        }
+        
+        @keyframes dominoRiseLeft {
+            0% {
+                transform: rotateX(90deg);
                 transform-origin: bottom center;
                 opacity: 0;
             }
@@ -761,114 +868,6 @@
             }
             95% {
                 transform: rotateX(-1deg);
-                transform-origin: bottom center;
-                opacity: 0.99;
-            }
-            100% {
-                transform: rotateX(0deg);
-                transform-origin: bottom center;
-                opacity: 1;
-            }
-        }
-        
-        @keyframes dominoRiseLeft {
-            0% {
-                transform: rotateX(90deg);
-                transform-origin: bottom center;
-                opacity: 0;
-            }
-            5% {
-                transform: rotateX(90deg);
-                transform-origin: bottom center;
-                opacity: 0.02;
-            }
-            10% {
-                transform: rotateX(90deg);
-                transform-origin: bottom center;
-                opacity: 0.06;
-            }
-            15% {
-                transform: rotateX(90deg);
-                transform-origin: bottom center;
-                opacity: 0.12;
-            }
-            20% {
-                transform: rotateX(90deg);
-                transform-origin: bottom center;
-                opacity: 0.2;
-            }
-            25% {
-                transform: rotateX(88deg);
-                transform-origin: bottom center;
-                opacity: 0.29;
-            }
-            30% {
-                transform: rotateX(84deg);
-                transform-origin: bottom center;
-                opacity: 0.38;
-            }
-            35% {
-                transform: rotateX(78deg);
-                transform-origin: bottom center;
-                opacity: 0.46;
-            }
-            40% {
-                transform: rotateX(71deg);
-                transform-origin: bottom center;
-                opacity: 0.54;
-            }
-            45% {
-                transform: rotateX(63deg);
-                transform-origin: bottom center;
-                opacity: 0.61;
-            }
-            50% {
-                transform: rotateX(54deg);
-                transform-origin: bottom center;
-                opacity: 0.68;
-            }
-            55% {
-                transform: rotateX(45deg);
-                transform-origin: bottom center;
-                opacity: 0.74;
-            }
-            60% {
-                transform: rotateX(36deg);
-                transform-origin: bottom center;
-                opacity: 0.79;
-            }
-            65% {
-                transform: rotateX(28deg);
-                transform-origin: bottom center;
-                opacity: 0.84;
-            }
-            70% {
-                transform: rotateX(21deg);
-                transform-origin: bottom center;
-                opacity: 0.88;
-            }
-            75% {
-                transform: rotateX(15deg);
-                transform-origin: bottom center;
-                opacity: 0.91;
-            }
-            80% {
-                transform: rotateX(10deg);
-                transform-origin: bottom center;
-                opacity: 0.94;
-            }
-            85% {
-                transform: rotateX(6deg);
-                transform-origin: bottom center;
-                opacity: 0.96;
-            }
-            90% {
-                transform: rotateX(3deg);
-                transform-origin: bottom center;
-                opacity: 0.98;
-            }
-            95% {
-                transform: rotateX(1deg);
                 transform-origin: bottom center;
                 opacity: 0.99;
             }
@@ -1092,7 +1091,7 @@
     <div class="container">
         <header>
             <h1>CONTRACT DOMINO</h1>
-            <div class="contract-address">0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb7</div>
+            <div class="contract-address">0xa3058D4F3428bAB0d1650a6F506E745c3658FD3b</div>
         </header>
         
         <div class="domino-visualization" id="dominoField"></div>
@@ -1113,7 +1112,7 @@
             
             <div class="mode">
                 <button class="mode-button apparent-destruction" onclick="executeApparent()">
-                    MOCK DESTRUCTION
+                    APPARENT DESTRUCTION
                 </button>
                 <h3>place() → topple()</h3>
                 <p>
@@ -1158,7 +1157,27 @@
 |  yet in destruction lies the rebirth.       |
 ---------------------------------------------*/</span>
 
+<span class="comment">// SPDX-License-Identifier: WTFPL</span>
 <span class="keyword">pragma solidity</span> <span class="string">^0.8.0</span>;
+
+<span class="keyword">import</span> <span class="string">"./Domino.sol"</span>;
+<span class="keyword">import</span> <span class="string">"./01_SocialWelfare.sol"</span>;
+<span class="keyword">import</span> <span class="string">"./02_FoodSupply.sol"</span>;
+<span class="keyword">import</span> <span class="string">"./03_HealthcareService.sol"</span>;
+<span class="keyword">import</span> <span class="string">"./04_EducationalSupport.sol"</span>;
+<span class="keyword">import</span> <span class="string">"./05_GenderEquality.sol"</span>;
+<span class="keyword">import</span> <span class="string">"./06_WaterResourceManagement.sol"</span>;
+<span class="keyword">import</span> <span class="string">"./07_RenewableEnergy.sol"</span>;
+<span class="keyword">import</span> <span class="string">"./08_LaborStandards.sol"</span>;
+<span class="keyword">import</span> <span class="string">"./09_InfrastructureInvestment.sol"</span>;
+<span class="keyword">import</span> <span class="string">"./10_SocialInclusion.sol"</span>;
+<span class="keyword">import</span> <span class="string">"./11_UrbanPlanning.sol"</span>;
+<span class="keyword">import</span> <span class="string">"./12_CircularEconomy.sol"</span>;
+<span class="keyword">import</span> <span class="string">"./13_EmissionReduction.sol"</span>;
+<span class="keyword">import</span> <span class="string">"./14_MarineConservation.sol"</span>;
+<span class="keyword">import</span> <span class="string">"./15_ForestConservation.sol"</span>;
+<span class="keyword">import</span> <span class="string">"./16_Peacebuilding.sol"</span>;
+<span class="keyword">import</span> <span class="string">"./17_InternationalCooperation.sol"</span>;
 
 <span class="keyword">contract</span> <span class="function">DominoFactory</span> {
     
@@ -1201,7 +1220,7 @@
         
         <div class="declarations-section">
             <div class="container">
-                <h2>SEVENTEEN CONTRACTS</h2>
+                <h2>SEVENTEEN DOMINOS</h2>
                 <p class="section-subtitle">As they appear on Etherscan—comments that exist, but not where you think.</p>
                 
                 <div class="source-carousel">
@@ -1245,7 +1264,7 @@
         <div class="container">
             <div class="philosophical-note">
                 <p>
-                    In the blockchain's immutable ledger, we inscribe our promises and watch them fall.
+                    In the blockchain's "immutable" ledger, we inscribe our promises and watch them fall.
                 </p>
                 <p>
                     Each smart contract represents an ideal—a commitment humanity makes to itself. Through SELFDESTRUCT, we confront the paradox of permanence and transience.
@@ -1932,11 +1951,19 @@ Together, we will build a future where unity leads to universal prosperity.
             field.innerHTML = '';
             dominoElements = [];
             
-            // Calculate total width and center position
-            const dominoSpacing = 50;
-            const totalWidth = (17 - 1) * dominoSpacing; // 16 * 50 = 800px
+            // Calculate responsive spacing based on field width
             const fieldWidth = field.offsetWidth;
+            const minSpacing = 20; // Minimum spacing for mobile
+            const maxSpacing = 40; // Maximum spacing for desktop
+            const dominoSpacing = Math.max(minSpacing, Math.min(maxSpacing, (fieldWidth - 100) / 20));
+            const totalWidth = (17 - 1) * dominoSpacing;
             const startX = (fieldWidth - totalWidth) / 2;
+            
+            // Calculate responsive domino size
+            const minHeight = 45;
+            const maxHeight = 80;
+            const dominoHeight = Math.max(minHeight, Math.min(maxHeight, fieldWidth / 20));
+            const dominoWidth = Math.max(1, dominoHeight / 40);
             
             // Display all 17 dominos with placement animation
             for (let i = 0; i < 17; i++) {
@@ -1948,10 +1975,13 @@ Together, we will build a future where unity leads to universal prosperity.
                 
                 const domino = document.createElement('div');
                 domino.className = 'domino';
+                domino.style.width = `${dominoWidth}px`;
+                domino.style.height = `${dominoHeight}px`;
                 
                 const label = document.createElement('div');
                 label.className = 'domino-label';
                 label.textContent = i < goals.length ? goals[i] : '';
+                label.style.fontSize = `${Math.max(8, dominoHeight / 7)}px`;
                 
                 wrapper.appendChild(domino);
                 wrapper.appendChild(label);
@@ -1998,7 +2028,7 @@ Together, we will build a future where unity leads to universal prosperity.
         
         function executeApparent() {
             currentMode = 'apparent';
-            updateQuantumState('MOCK DESTRUCTION');
+            updateQuantumState('APPARENT DESTRUCTION');
             
             // Place dominos with animation
             initializeDominos();
@@ -2008,7 +2038,7 @@ Together, we will build a future where unity leads to universal prosperity.
             setTimeout(() => {
                 dominoElements.forEach((domino, i) => {
                     setTimeout(() => {
-                        // MOCK DESTRUCTION: 半透明な幻影が倒れるが、実際のドミノは直立のまま
+                        // APPARENT DESTRUCTION: 半透明な幻影が倒れるが、実際のドミノは直立のまま
                         domino.classList.add('mock-falling');
                         
                         // 少し遅れて幻影が倒れるアニメーション開始
@@ -2025,7 +2055,7 @@ Together, we will build a future where unity leads to universal prosperity.
                                 }, 800); // フェードアウト時間と同じ
                             }, 800); // 倒れるアニメーション完了後すぐ
                         }, 100);
-                    }, i * 100);
+                    }, i * 120);
                 });
             }, placementTime + 500); // Extra 500ms pause after placement
         }
@@ -2037,7 +2067,7 @@ Together, we will build a future where unity leads to universal prosperity.
             
             if (state === 'TRUE DESTRUCTION') {
                 indicator.classList.add('true-state');
-            } else if (state === 'MOCK DESTRUCTION') {
+            } else if (state === 'APPARENT DESTRUCTION') {
                 indicator.classList.add('apparent-state');
             }
             
@@ -2060,17 +2090,8 @@ Together, we will build a future where unity leads to universal prosperity.
         // Re-center dominos on window resize
         window.addEventListener('resize', () => {
             if (dominoElements.length > 0) {
-                const field = document.getElementById('dominoField');
-                const dominoSpacing = 50;
-                const totalWidth = (17 - 1) * dominoSpacing;
-                const fieldWidth = field.offsetWidth;
-                const startX = (fieldWidth - totalWidth) / 2;
-                
-                // Update positions of existing dominos
-                const wrappers = field.querySelectorAll('div[style*="position: absolute"]');
-                wrappers.forEach((wrapper, i) => {
-                    wrapper.style.left = `${startX + (i * dominoSpacing)}px`;
-                });
+                // Reinitialize dominos with new responsive sizing
+                initializeDominos();
             }
         });
         
